@@ -1,0 +1,7 @@
+{
+  "name": "Boucherie Mira-Mk - Gestion & Contrôle",
+  "description": "Système professionnel de gestion et de contrôle pour la Boucherie Mira-Mk à Lubumbashi : stocks, ventes, achats, factures, inventaires, pertes et audit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

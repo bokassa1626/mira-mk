@@ -1,0 +1,293 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Utilisateurs du système de gestion de la Boucherie Mira-Mk",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "Email professionnel" },
+        "firstName": { "type": "string", "description": "Prénom de l'employé" },
+        "lastName": { "type": "string", "description": "Nom de famille" },
+        "phone": { "type": "string", "description": "Numéro de téléphone Lubumbashi" },
+        "role": { "type": "string", "enum": ["ADMINISTRATEUR", "GESTIONNAIRE", "VENDEUR", "CONTROLEUR"], "description": "Rôle RBAC" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"], "description": "Statut du compte" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "firstName", "lastName", "role", "status"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Catégorie de viandes et produits de boucherie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "name"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Produit / Viande de la boucherie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "unit": { "type": "string", "enum": ["kg", "piece", "carton", "paquet"] },
+        "purchasePrice": { "type": "number", "description": "Prix d'achat unitaire (CDF)" },
+        "sellingPrice": { "type": "number", "description": "Prix de vente unitaire (CDF)" },
+        "initialStock": { "type": "number" },
+        "currentStock": { "type": "number" },
+        "minimumStock": { "type": "number", "description": "Seuil d'alerte stock minimum" },
+        "supplierId": { "type": "string" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "OUT_OF_STOCK", "ARCHIVED"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "name", "categoryId", "unit", "purchasePrice", "sellingPrice", "currentStock", "minimumStock"]
+    },
+    "StockMovement": {
+      "title": "StockMovement",
+      "description": "Mouvement d'entrée/sortie/ajustement de stock tracé",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string", "enum": ["PURCHASE", "SALE", "LOSS", "RETURN", "ADJUSTMENT", "INVENTORY"] },
+        "quantity": { "type": "number" },
+        "previousStock": { "type": "number" },
+        "newStock": { "type": "number" },
+        "referenceId": { "type": "string" },
+        "reason": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "type", "quantity", "previousStock", "newStock", "userId"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Fournisseur d'animaux, carcasses ou viandes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "contactPerson": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "totalPurchases": { "type": "number" },
+        "totalDebt": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "Achat de marchandise et approvisionnement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "purchaseNumber": { "type": "string" },
+        "supplierId": { "type": "string" },
+        "supplierName": { "type": "string" },
+        "currency": { "type": "string", "enum": ["CDF", "USD"] },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "amountPaid": { "type": "number" },
+        "remainingAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["CASH", "AIRTEL_MONEY", "M_PESA", "ORANGE_MONEY", "BANK_TRANSFER"] },
+        "status": { "type": "string", "enum": ["VALIDATED", "CANCELLED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["purchaseNumber", "supplierId", "total", "amountPaid", "status", "createdBy"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Vente comptoir ou commande avec facture",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "saleNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "currency": { "type": "string", "enum": ["CDF", "USD"] },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "totalCost": { "type": "number", "description": "Coût des marchandises vendues" },
+        "grossMargin": { "type": "number", "description": "Total - TotalCost" },
+        "amountPaid": { "type": "number" },
+        "remainingAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["CASH", "AIRTEL_MONEY", "M_PESA", "ORANGE_MONEY", "BANK_TRANSFER"] },
+        "status": { "type": "string", "enum": ["COMPLETED", "CANCELLED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["saleNumber", "total", "amountPaid", "status", "createdBy"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Dépenses d'exploitation de la boucherie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string", "enum": ["TRANSPORT", "ELECTRICITE_CARBURANT", "EAU", "ENTRETIEN_HYGIENE", "SALAIRES", "MATERIEL_EMBALLAGE", "ADMINISTRATION", "AUTRES"] },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "enum": ["CDF", "USD"] },
+        "paymentMethod": { "type": "string" },
+        "reference": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["category", "description", "amount", "currency", "createdBy"]
+    },
+    "Loss": {
+      "title": "Loss",
+      "description": "Pertes, casse ou avarie constatée",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "totalValue": { "type": "number" },
+        "type": { "type": "string", "enum": ["DAMAGED", "EXPIRED", "LOST", "THEFT_SUSPECTED", "COUNT_DIFFERENCE", "OTHER"] },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "declaredBy": { "type": "string" },
+        "approvedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "quantity", "type", "reason", "status", "declaredBy"]
+    },
+    "InventorySession": {
+      "title": "InventorySession",
+      "description": "Session d'inventaire physique des viandes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sessionNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["IN_PROGRESS", "VALIDATED", "REJECTED"] },
+        "totalDifferenceValue": { "type": "number" },
+        "conductedBy": { "type": "string" },
+        "validatedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sessionNumber", "status", "conductedBy"]
+    },
+    "DailyReport": {
+      "title": "DailyReport",
+      "description": "Rapport synthétique journalier d'activité",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "salesTotal": { "type": "number" },
+        "salesCount": { "type": "number" },
+        "purchasesTotal": { "type": "number" },
+        "expensesTotal": { "type": "number" },
+        "lossesTotal": { "type": "number" },
+        "grossMargin": { "type": "number" },
+        "netProfit": { "type": "number" },
+        "stockValue": { "type": "number" }
+      },
+      "required": ["date", "salesTotal", "netProfit"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Piste d'audit immuable de chaque opération système",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userRole": { "type": "string" },
+        "action": { "type": "string" },
+        "module": { "type": "string" },
+        "documentId": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "action", "module", "description"]
+    },
+    "CompanySettings": {
+      "title": "CompanySettings",
+      "description": "Paramètres d'entreprise Boucherie Mira-Mk",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "currency": { "type": "string" },
+        "exchangeRate": { "type": "number" },
+        "invoicePrefix": { "type": "string" },
+        "defaultStockThreshold": { "type": "number" }
+      },
+      "required": ["companyName", "address", "currency"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "Profils des utilisateurs et assignation des rôles"
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "Category" },
+      "description": "Familles de produits boucherie"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "Product" },
+      "description": "Catalogue des viandes avec stocks et prix"
+    },
+    "/stock_movements/{movementId}": {
+      "schema": { "$ref": "StockMovement" },
+      "description": "Traçabilité intégrale de tous les mouvements de stock"
+    },
+    "/suppliers/{supplierId}": {
+      "schema": { "$ref": "Supplier" },
+      "description": "Fournisseurs de bétail et viandes"
+    },
+    "/purchases/{purchaseId}": {
+      "schema": { "$ref": "Purchase" },
+      "description": "Bons d'approvisionnement et achats"
+    },
+    "/sales/{saleId}": {
+      "schema": { "$ref": "Sale" },
+      "description": "Ventes réalisées et données pour facturation"
+    },
+    "/expenses/{expenseId}": {
+      "schema": { "$ref": "Expense" },
+      "description": "Charges d'exploitation quotidiennes"
+    },
+    "/losses/{lossId}": {
+      "schema": { "$ref": "Loss" },
+      "description": "Pertes physiques déclarées et validées"
+    },
+    "/inventory_sessions/{sessionId}": {
+      "schema": { "$ref": "InventorySession" },
+      "description": "Séances d'inventaires contradictoires et écarts"
+    },
+    "/daily_reports/{date}": {
+      "schema": { "$ref": "DailyReport" },
+      "description": "Synthèses journalières pour la direction"
+    },
+    "/audit_logs/{auditId}": {
+      "schema": { "$ref": "AuditLog" },
+      "description": "Journal sécurisé et inaltérable des actions"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "CompanySettings" },
+      "description": "Paramètres et coordonnées de la boucherie"
+    }
+  }
+}

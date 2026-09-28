@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Role check helper
+    function isStaff() {
+      return isSignedIn();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || resource.data.role == 'ADMINISTRATEUR');
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Categories
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Products
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Stock movements
+    match /stock_movements/{movementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false; // Immutable log
+    }
+
+    // Suppliers
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Purchases
+    match /purchases/{purchaseId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Sales
+    match /sales/{saleId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Expenses
+    match /expenses/{expenseId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Losses
+    match /losses/{lossId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Inventory Sessions
+    match /inventory_sessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Daily Reports
+    match /daily_reports/{reportId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Audit logs (Immutable)
+    match /audit_logs/{auditId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // Settings
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+  }
+}

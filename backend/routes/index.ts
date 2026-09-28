@@ -1,0 +1,32 @@
+import { Router } from 'express';
+import { authRouter } from './authRoutes.ts';
+import { userRouter } from './userRoutes.ts';
+import { productRouter } from './productRoutes.ts';
+import { categoryRouter } from './categoryRoutes.ts';
+import { supplierRouter } from './supplierRoutes.ts';
+import { purchaseRouter } from './purchaseRoutes.ts';
+import { saleRouter } from './saleRoutes.ts';
+import { stockRouter } from './stockRoutes.ts';
+import { expenseRouter } from './expenseRoutes.ts';
+import { inventoryRouter } from './inventoryRoutes.ts';
+import { lossRouter } from './lossRoutes.ts';
+import { reportRouter } from './reportRoutes.ts';
+import { alertRouter } from './alertRoutes.ts';
+import { auditRouter } from './auditRoutes.ts';
+
+export const apiRouter = Router();
+
+apiRouter.use('/auth', authRouter);
+apiRouter.use('/users', userRouter);
+apiRouter.use('/products', productRouter);
+apiRouter.use('/categories', categoryRouter);
+apiRouter.use('/suppliers', supplierRouter);
+apiRouter.use('/purchases', purchaseRouter);
+apiRouter.use('/sales', saleRouter);
+apiRouter.use('/stock', stockRouter);
+apiRouter.use('/expenses', expenseRouter);
+apiRouter.use('/inventory', inventoryRouter);
+apiRouter.use('/losses', lossRouter);
+apiRouter.use('/reports', reportRouter);
+apiRouter.use('/alerts', alertRouter);
+apiRouter.use('/audit', auditRouter);
