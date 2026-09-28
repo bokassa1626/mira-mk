@@ -8,4 +8,5 @@ export const lossRouter = Router();
 lossRouter.use(authenticateToken);
 
 lossRouter.get('/', requireAnyStaff, LossController.getAll);
-lossRouter.post('/', requireAuditorOrAdmin, LossController.create);
+lossRouter.post('/', requireAnyStaff, LossController.create);
+lossRouter.put('/:id/approve', requireAuditorOrAdmin, LossController.approve);

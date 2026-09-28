@@ -35,7 +35,6 @@ export class LossController {
 
     prod.currentStock = newStock;
     prod.updatedAt = new Date().toISOString();
-    store.recalculateProductStock(prod.id);
 
     const requester = req.user || store.users[0];
     const newLoss: Loss = {
@@ -74,6 +73,8 @@ export class LossController {
       createdAt: new Date().toISOString()
     });
 
+    store.recalculateProductStock(prod.id);
+
     store.logAudit(
       requester.uid, requester.email, requester.role,
       'CREATE', 'LOSSES', newLoss.id,
@@ -85,5 +86,51 @@ export class LossController {
       message: "Déclaration de perte enregistrée et stock déduit avec succès.",
       data: newLoss
     });
+  }
+
+  static async approve(req: Request, res: Response) {
+    const requester = req.user || store.users[0];
+    if (requester.role === 'VENDEUR') {
+      return res.status(403).json({ success: false, message: "Permission refusée." });
+    }
+
+    const loss = store.losses.find(l => l.id === req.params.id);
+    if (!loss) return res.status(404).json({ success: false, message: "Perte non trouvée" });
+    if (loss.status === 'APPROVED') return res.status(400).json({ success: false, message: "Déjà approuvée." });
+
+    loss.status = 'APPROVED';
+    loss.approvedBy = requester.uid;
+    loss.approvedByName = `${requester.firstName} ${requester.lastName}`;
+
+    const product = store.products.find(p => p.id === loss.productId);
+    if (product) {
+      const prev = product.currentStock;
+      product.currentStock = Math.max(0, product.currentStock - loss.quantity);
+      product.updatedAt = new Date().toISOString();
+      store.recalculateProductStock(product.id);
+
+      store.stockMovements.unshift({
+        id: `mvt-${Date.now()}-${product.id}`,
+        productId: product.id,
+        productName: product.name,
+        type: 'LOSS',
+        quantity: -loss.quantity,
+        previousStock: prev,
+        newStock: product.currentStock,
+        referenceId: loss.id,
+        reason: `Validation Perte (${loss.type}): ${loss.reason}`,
+        userId: requester.uid,
+        userName: `${requester.firstName} ${requester.lastName}`,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    store.logAudit(
+      requester.uid, requester.email, requester.role,
+      'VALIDATE', 'LOSSES', loss.id,
+      `Approbation perte ${loss.productName} (-${loss.quantity})`
+    );
+
+    return res.json({ success: true, message: "Perte approuvée et stock ajusté", data: loss });
   }
 }

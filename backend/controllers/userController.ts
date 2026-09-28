@@ -68,6 +68,27 @@ export class UserController {
     return res.json({ success: true, data: user });
   }
 
+  static async updateRole(req: Request, res: Response) {
+    const user = store.users.find(u => u.uid === req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+    }
+
+    const { role, status } = req.body;
+    if (role) user.role = role;
+    if (status) user.status = status;
+    user.updatedAt = new Date().toISOString();
+
+    const requester = req.user || store.users[0];
+    store.logAudit(
+      requester.uid, requester.email, requester.role,
+      'UPDATE_USER', 'USERS', user.uid,
+      `Mise à jour rôle/statut de ${user.firstName} ${user.lastName} vers ${role || user.role} (${status || user.status})`
+    );
+
+    return res.json({ success: true, message: "Profil mis à jour", data: user });
+  }
+
   static async toggleStatus(req: Request, res: Response) {
     const user = store.users.find(u => u.uid === req.params.id);
     if (!user) {

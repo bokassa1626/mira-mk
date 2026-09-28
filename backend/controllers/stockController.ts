@@ -4,31 +4,39 @@ import { StockMovement } from '../../src/types/index.ts';
 
 export class StockController {
   static async getOverview(_req: Request, res: Response) {
-    const totalProducts = store.products.length;
-    const available = store.products.filter(p => p.status === 'AVAILABLE').length;
-    const lowStock = store.products.filter(p => p.status === 'LOW_STOCK').length;
-    const outOfStock = store.products.filter(p => p.status === 'OUT_OF_STOCK').length;
+    let totalValuation = 0;
+    let totalWeightKg = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
 
-    const totalStockValueBuy = store.products.reduce((acc, p) => acc + (p.currentStock * p.purchasePrice), 0);
-    const totalStockValueSell = store.products.reduce((acc, p) => acc + (p.currentStock * p.sellingPrice), 0);
+    for (const p of store.products) {
+      if ((p.status as string) !== 'ARCHIVED') {
+        totalValuation += p.currentStock * p.purchasePrice;
+        if (p.unit === 'kg') totalWeightKg += p.currentStock;
+        if (p.currentStock <= 0) outOfStockCount++;
+        else if (p.currentStock <= p.minimumStock) lowStockCount++;
+      }
+    }
+
+    const filteredProducts = store.products.filter(p => (p.status as string) !== 'ARCHIVED');
 
     return res.json({
       success: true,
       data: {
-        totalProducts,
-        available,
-        lowStock,
-        outOfStock,
-        totalStockValueBuy,
-        totalStockValueSell,
-        potentialMargin: totalStockValueSell - totalStockValueBuy,
-        products: store.products
+        products: filteredProducts,
+        summary: {
+          totalProducts: filteredProducts.length,
+          totalValuation,
+          totalWeightKg: Math.round(totalWeightKg * 100) / 100,
+          lowStockCount,
+          outOfStockCount
+        }
       }
     });
   }
 
   static async getMovements(req: Request, res: Response) {
-    const { productId, type, limit = 100 } = req.query;
+    const { productId, type } = req.query;
     let list = [...store.stockMovements];
 
     if (productId && productId !== 'ALL') {
@@ -38,70 +46,75 @@ export class StockController {
       list = list.filter(m => m.type === type);
     }
 
-    const max = Number(limit) || 100;
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return res.json({
       success: true,
       count: list.length,
-      data: list.slice(0, max)
+      data: list
     });
   }
 
   /**
    * POST /api/stock/adjust
-   * Ajustement manuel contrôlé du stock
+   * Body: { productId, newStock, reason } or { productId, quantity, reason }
    */
   static async adjust(req: Request, res: Response) {
-    const { productId, type = 'ADJUSTMENT', quantity, reason } = req.body;
+    const requester = req.user || store.users[0];
+    if (requester.role === 'VENDEUR') {
+      return res.status(403).json({ success: false, message: "Non autorisé à faire un ajustement de stock." });
+    }
 
-    if (!productId || quantity === undefined || !reason) {
-      return res.status(400).json({ success: false, message: "Produit, quantité et motif requis pour un ajustement." });
+    const { productId, newStock, quantity, reason } = req.body;
+    if (!productId || (newStock === undefined && quantity === undefined) || !reason) {
+      return res.status(400).json({ success: false, message: "Produit, quantité/nouveau stock et motif obligatoires." });
     }
 
     const product = store.products.find(p => p.id === productId);
     if (!product) return res.status(404).json({ success: false, message: "Produit non trouvé" });
 
-    const qty = Number(quantity);
-    const prevStock = product.currentStock;
-    const newStock = prevStock + qty;
+    const previousStock = product.currentStock;
+    const targetStock = newStock !== undefined ? Number(newStock) : previousStock + Number(quantity);
+    const difference = targetStock - previousStock;
 
-    if (newStock < 0) {
-      return res.status(400).json({ success: false, message: "L'ajustement résulterait en un stock négatif non autorisé." });
+    if (targetStock < 0) {
+      return res.status(400).json({ success: false, message: "Le stock ne peut pas être négatif." });
     }
 
-    product.currentStock = newStock;
+    product.currentStock = targetStock;
+    if (product.currentStock <= 0) product.status = 'OUT_OF_STOCK';
+    else if (product.currentStock <= product.minimumStock) product.status = 'LOW_STOCK';
+    else product.status = 'AVAILABLE';
     product.updatedAt = new Date().toISOString();
-    store.recalculateProductStock(product.id);
 
-    const requester = req.user || store.users[0];
     const movement: StockMovement = {
       id: `mov-${Date.now()}`,
       productId: product.id,
       productName: product.name,
-      type: type as any,
-      quantity: qty,
-      previousStock: prevStock,
-      newStock: newStock,
-      reason,
+      type: 'ADJUSTMENT',
+      quantity: difference,
+      previousStock,
+      newStock: targetStock,
+      reason: `Ajustement manuel: ${reason}`,
       userId: requester.uid,
       userName: `${requester.firstName} ${requester.lastName}`,
       createdAt: new Date().toISOString()
     };
 
     store.stockMovements.unshift(movement);
-
     store.logAudit(
-      requester.uid, requester.email, requester.role,
-      'UPDATE', 'STOCK', product.id,
-      `Ajustement de stock sur ${product.name} (${qty > 0 ? '+' : ''}${qty} ${product.unit}). Motif : ${reason}`
+      requester.uid,
+      requester.email,
+      requester.role,
+      'STOCK_ADJUSTMENT',
+      'STOCK',
+      product.id,
+      `Ajustement de stock pour ${product.name}: ${previousStock} -> ${targetStock} (${reason})`
     );
 
     return res.json({
       success: true,
-      message: "Stock ajusté avec succès.",
-      data: {
-        product,
-        movement
-      }
+      message: "Stock ajusté avec succès",
+      data: product
     });
   }
 }

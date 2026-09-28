@@ -36,7 +36,14 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
     },
   });
 
-  const data = await res.json();
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    throw new Error(`Réponse inattendue du serveur (${res.status}): ${text.slice(0, 100)}`);
+  }
+
   if (!res.ok || data.success === false) {
     throw new Error(data.message || data.error || 'Erreur lors de la requête serveur.');
   }
@@ -84,6 +91,17 @@ export const api = {
       fetchJson<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => fetchJson<void>(`/products/${id}`, { method: 'DELETE' }),
     getCategories: () => fetchJson<Category[]>('/categories'),
+  },
+
+  // Categories
+  categories: {
+    getAll: () => fetchJson<Category[]>('/categories'),
+    getById: (id: string) => fetchJson<Category>(`/categories/${id}`),
+    create: (data: Partial<Category>) =>
+      fetchJson<Category>('/categories', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<Category>) =>
+      fetchJson<Category>(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: string) => fetchJson<void>(`/categories/${id}`, { method: 'DELETE' }),
   },
 
   // Stock

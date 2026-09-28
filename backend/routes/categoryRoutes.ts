@@ -8,4 +8,7 @@ export const categoryRouter = Router();
 categoryRouter.use(authenticateToken);
 
 categoryRouter.get('/', requireAnyStaff, CategoryController.getAll);
+categoryRouter.get('/:id', requireAnyStaff, CategoryController.getById);
 categoryRouter.post('/', requireManagerOrAdmin, CategoryController.create);
+categoryRouter.put('/:id', requireManagerOrAdmin, CategoryController.update);
+categoryRouter.delete('/:id', requireManagerOrAdmin, CategoryController.delete);

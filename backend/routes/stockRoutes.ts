@@ -7,6 +7,7 @@ export const stockRouter = Router();
 
 stockRouter.use(authenticateToken);
 
+stockRouter.get('/', requireAnyStaff, StockController.getOverview);
 stockRouter.get('/overview', requireAnyStaff, StockController.getOverview);
 stockRouter.get('/movements', requireAnyStaff, StockController.getMovements);
 stockRouter.post('/adjust', requireManagerOrAdmin, StockController.adjust);

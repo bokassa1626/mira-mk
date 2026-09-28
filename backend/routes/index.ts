@@ -13,6 +13,7 @@ import { lossRouter } from './lossRoutes.ts';
 import { reportRouter } from './reportRoutes.ts';
 import { alertRouter } from './alertRoutes.ts';
 import { auditRouter } from './auditRoutes.ts';
+import { settingsRouter } from './settingsRoutes.ts';
 
 export const apiRouter = Router();
 
@@ -30,3 +31,4 @@ apiRouter.use('/losses', lossRouter);
 apiRouter.use('/reports', reportRouter);
 apiRouter.use('/alerts', alertRouter);
 apiRouter.use('/audit', auditRouter);
+apiRouter.use('/settings', settingsRouter);

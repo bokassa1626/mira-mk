@@ -125,7 +125,6 @@ export class SaleController {
 
       prod.currentStock = newStock;
       prod.updatedAt = new Date().toISOString();
-      store.recalculateProductStock(prod.id);
 
       store.stockMovements.unshift({
         id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -142,6 +141,8 @@ export class SaleController {
         userName: `${requester.firstName} ${requester.lastName}`,
         createdAt: new Date().toISOString()
       });
+
+      store.recalculateProductStock(prod.id);
     }
 
     // 4. Log in Audit Trail
@@ -183,7 +184,6 @@ export class SaleController {
         const newStock = prevStock + it.quantity;
         prod.currentStock = newStock;
         prod.updatedAt = new Date().toISOString();
-        store.recalculateProductStock(prod.id);
 
         store.stockMovements.unshift({
           id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -200,6 +200,8 @@ export class SaleController {
           userName: `${requester.firstName} ${requester.lastName}`,
           createdAt: new Date().toISOString()
         });
+
+        store.recalculateProductStock(prod.id);
       }
     }
 

@@ -11,4 +11,5 @@ userRouter.get('/', requireAnyStaff, UserController.getAll);
 userRouter.get('/:id', requireAnyStaff, UserController.getById);
 userRouter.post('/', requireAdmin, UserController.create);
 userRouter.put('/:id', requireAdmin, UserController.update);
+userRouter.put('/:id/role', requireAdmin, UserController.updateRole);
 userRouter.patch('/:id/toggle-status', requireAdmin, UserController.toggleStatus);

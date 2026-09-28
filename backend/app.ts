@@ -42,6 +42,14 @@ app.use(cookieParser());
 // Mount Modular REST API
 app.use('/api', apiRouter);
 
+// Catch-all for undefined /api routes so they return JSON 404 instead of HTML
+app.all('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Point de terminaison API introuvable : ${req.method} ${req.originalUrl}`
+  });
+});
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({

@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Beef,
+  Layers,
   Package,
   ShoppingCart,
   Receipt,
@@ -56,6 +57,12 @@ export const Sidebar: React.FC = () => {
       name: 'Viandes & Produits',
       path: '/products',
       icon: Beef,
+      allowedRoles: ['ADMINISTRATEUR', 'GESTIONNAIRE', 'CONTROLEUR'],
+    },
+    {
+      name: 'Familles & Catégories',
+      path: '/categories',
+      icon: Layers,
       allowedRoles: ['ADMINISTRATEUR', 'GESTIONNAIRE', 'CONTROLEUR'],
     },
     {

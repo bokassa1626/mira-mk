@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard.tsx';
 import { Sales } from './pages/Sales.tsx';
 import { Invoices } from './pages/Invoices.tsx';
 import { Products } from './pages/Products.tsx';
+import { Categories } from './pages/Categories.tsx';
 import { Stock } from './pages/Stock.tsx';
 import { Purchases } from './pages/Purchases.tsx';
 import { Suppliers } from './pages/Suppliers.tsx';
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="/sales" element={<Sales />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/categories" element={<Categories />} />
             <Route path="/stock" element={<Stock />} />
             <Route path="/purchases" element={<Purchases />} />
             <Route path="/suppliers" element={<Suppliers />} />

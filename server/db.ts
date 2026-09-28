@@ -401,6 +401,9 @@ class Store {
     const movements = this.stockMovements.filter(m => m.productId === productId);
 
     for (const m of movements) {
+      if (m.reason?.includes('Stock initial') || m.reason?.includes('Initialisation stock')) {
+        continue;
+      }
       computedStock += m.quantity;
     }
 

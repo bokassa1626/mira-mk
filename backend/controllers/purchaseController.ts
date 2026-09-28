@@ -88,7 +88,6 @@ export class PurchaseController {
       prod.purchasePrice = it.unitPrice;
       prod.currentStock = newStock;
       prod.updatedAt = new Date().toISOString();
-      store.recalculateProductStock(prod.id);
 
       store.stockMovements.unshift({
         id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -105,6 +104,8 @@ export class PurchaseController {
         userName: `${requester.firstName} ${requester.lastName}`,
         createdAt: new Date().toISOString()
       });
+
+      store.recalculateProductStock(prod.id);
     }
 
     // Update supplier metrics

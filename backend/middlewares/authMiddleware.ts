@@ -87,7 +87,17 @@ export async function authenticateToken(req: Request, res: Response, next: NextF
       req.user = appUser;
       return next();
     } catch (firebaseErr: any) {
-      // Check if it's a demo token
+      // Check if it's a mira session or demo token
+      if (token.startsWith('mira-session-')) {
+        const parts = token.split('-');
+        // Format: mira-session-<uid>-<timestamp>
+        const userUid = parts.slice(2, parts.length - 1).join('-');
+        const matched = store.users.find(u => u.uid === userUid) || store.users[0];
+        req.user = matched;
+        req.firebaseUid = matched?.uid;
+        return next();
+      }
+
       if (token.startsWith('demo-token-')) {
         const demoRole = token.replace('demo-token-', '').toUpperCase() as Role;
         const matchingUser = store.users.find(u => u.role === demoRole) || store.users[0];
